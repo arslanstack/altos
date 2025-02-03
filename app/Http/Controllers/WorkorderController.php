@@ -39,7 +39,7 @@ class WorkorderController extends Controller
     {
         return view('workorders.create');
     }
-
+'url' => 'https://altosprintandcopy.com/public/' . ('storage/uploads/' . $workorder->user->name . '_' . $workorder->user->id . '/' . $workorder->jobname . '_' . $workorder->id . '/' . $workfiles[0]),
     /**
      * Store a newly created resource in storage.
      */
@@ -58,11 +58,19 @@ class WorkorderController extends Controller
     public function show($id)
     {
         $workorder = Workorder::with('user')->findOrFail($id);
-        $workfiles = json_decode($workorder->files, true);
-        $file = [
-            'title' => $workfiles[0],
-            'url' => env('ASSET_URL') . ('storage/uploads/' . $workorder->user->name . '_' . $workorder->user->id . '/' . $workorder->jobname . '_' . $workorder->id . '/' . $workfiles[0]),
-        ];
+        if ($workorder->files != null || $workorder->files != '') {
+
+            $workfiles = json_decode($workorder->files, true);
+            $file = [
+                'title' => $workfiles[0],
+                'url' => '',
+            ];
+        } else {
+            $file = [
+                'title' => 'No file uploaded',
+                'url' => '',
+            ];
+        }
 
         return view('workorders.show', compact(['workorder', 'file']));
     }
@@ -74,11 +82,19 @@ class WorkorderController extends Controller
     {
         $workorders = Workorder::where('user_id', auth()->id())->get();
         $workorder = Workorder::where('id', $workorder->id)->first();
-        $workfiles = json_decode($workorder->files, true);
-        $file = [
-            'title' => $workfiles[0],
-            'url' => env('ASSET_URL') . ('storage/uploads/' . $workorder->user->name . '_' . $workorder->user->id . '/' . $workorder->jobname . '_' . $workorder->id . '/' . $workfiles[0]),
-        ];
+        if ($workorder->files != null || $workorder->files != '') {
+            $workfiles = json_decode($workorder->files, true);
+            $file = [
+                'title' => $workfiles[0],
+                'url' => '',
+            ];
+        } else {
+            $file = [
+                'title' => 'No file uploaded',
+                'url' => '',
+            ];
+        }
+
         if (Auth::user()->hasRole('admin')) {
             return view('workorders.edit', compact(['workorder', 'file']));
         } elseif (Auth::user()->hasRole('user')) {
@@ -123,5 +139,23 @@ class WorkorderController extends Controller
     {
         $workorder->delete();
         return back()->with('success', 'Workorder Deleted Successfully');
+    }
+
+    public function download($id)
+    {
+        $authUser = Auth::user();
+        $workorder = Workorder::where('id', $id)->first();
+            if (!$workorder) {
+                return back()->withErrors(['msg' => 'Workorder not found']);
+            }
+        if ($authUser->hasRole('admin') || $authUser->id == $workorder->user_id) {
+            
+            $workfiles = json_decode($workorder->files, true);
+            $file = $workfiles[0];
+            $path = storage_path('app/public/uploads/' . $workorder->user->name . '_' . $workorder->user->id . '/' . $workorder->jobname . '_' . $workorder->id . '/'  . $file);
+            return response()->download($path);
+        } else {
+            return redirect()->route('workorders.index')->withErrors(['msg' => 'You are not allowed']);
+        }
     }
 }

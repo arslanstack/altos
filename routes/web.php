@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/create-zip/{id}', [FileUploadController::class, 'zipper'])->name('uploads.createZip');
     Route::get('/upload-files/{id}', [FileUploadController::class, 'index'])->name('upload-files');
     Route::post('/file-upload', [FileUploadController::class, 'upload'])->name('fileuploadem');
+    Route::get('/filedownload/{id}', [WorkorderController::class, 'download'])->name('filedownload');
     Route::get('/workorders/create', [WorkorderController::class, 'create'])->name('workorders.create');
     Route::post('/workorders', [WorkorderController::class, 'store'])->name('workorders.store');
     Route::get('/workorders/{workorder}', [WorkorderController::class, 'show'])->name('workorders.show');

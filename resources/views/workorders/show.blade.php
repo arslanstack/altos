@@ -189,7 +189,7 @@
                             </div>
                             <tr class="text-start">
                                 <td scope="row">{{$file['title']}}</td>
-                                <td><a href="{{ $file['url'] }}" target="_blank">Download</a></td>
+                                <td><a href="{{route('filedownload', $workorder->id)}}" target="_blank">Download</a></td>
                             </tr>
                         </tbody>
 
